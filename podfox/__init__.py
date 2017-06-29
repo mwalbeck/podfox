@@ -347,3 +347,6 @@ def main():
             exit(0)
     if arguments['rename']:
         rename(arguments['<shortname>'], arguments['<newname>'])
+
+if __name__ == "__main__":
+    main()
