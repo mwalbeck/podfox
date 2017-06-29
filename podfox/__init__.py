@@ -38,7 +38,7 @@ import re
 # how-to-parse-a-rfc-2822-date-time-into-a-python-datetime
 
 from email.utils import parsedate
-from time import mktime, gmtime, strftime
+from time import time, mktime, gmtime, strftime
 
 CONFIGURATION = {}
 
@@ -190,7 +190,7 @@ def episodes_from_feed(d):
 
 
 def rename_episode(folder, published, title, url):
-    if CONFIGURATION['date_format']:
+    if 'date_format' in CONFIGURATION:
         date_format = CONFIGURATION['date_format']
     else:
         date_format = "%Y-%m-%d"
@@ -210,8 +210,7 @@ def rename_episode(folder, published, title, url):
 
     # If filename exists change title to original filename
     original_title = get_original_filename(url)
-
-    filname = construct_filename(original_title, published_date)
+    filename = construct_filename(original_title, published_date)
 
     if not file_exists(folder, filename):
         return filename
@@ -222,26 +221,26 @@ def rename_episode(folder, published, title, url):
     else:
         current_date = None
     
-    filname = construct_filename(safe_title, current_date)
+    filename = construct_filename(safe_title, current_date)
 
     if not file_exists(folder, filename):
         return filename
 
     # If filename exists change date to current and title to original filename
-    filname = construct_filename(original_title, current_date)
+    filename = construct_filename(original_title, current_date)
 
     if not file_exists(folder, filename):
         return filename
 
     # If filename exists change date to current epoch and original filename
-    return construct_filename(original_title, gmtime())
+    return construct_filename(original_title, int(time()))
 
 
 def construct_filename(title, date=None):
     if date is None:
         return title
     
-    return date + " - " + title
+    return "{} - {}".format(date, title)
 
 
 def escape_string(title):
@@ -252,13 +251,13 @@ def escape_string(title):
 def get_extenstion(url):
     url = url.split("?")[0]
     pattern = r'[.][\w]+$'
-    return re.match(pattern, url)
+    return re.search(pattern, url).group(0)
 
 
 def get_original_filename(url):
     url = url.split("?")[0]
     pattern = r'[^\/]+$'
-    return re.match(pattern, url)
+    return re.search(pattern, url).group(0)
 
 
 def file_exists(shortname, filename):
@@ -270,12 +269,12 @@ def file_exists(shortname, filename):
 
 
 def generic_episode_name(folder, url):
-    name = get_original_title(url)
+    filename = get_original_filename(url)
 
-    if not file_exists(folder, name)
-        return name
+    if not file_exists(folder, filename):
+        return filename
     
-    return construct_filename(name, gmtime())
+    return construct_filename(filename, int(time()))
 
 
 def download_multiple(feed, maxnum):
@@ -283,7 +282,7 @@ def download_multiple(feed, maxnum):
         if maxnum == 0:
             break
         if not episode['downloaded']:
-            if CONFIGURATION['rename_episodes']:
+            if 'rename_episodes' in CONFIGURATION and CONFIGURATION['rename_episodes']:
                 filename = rename_episode(feed['shortname'], episode['published'],
                                           episode["title"], episode["url"])
             else:
