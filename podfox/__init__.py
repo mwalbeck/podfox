@@ -131,7 +131,7 @@ def import_feed(url, shortname=''):
     print('imported ' +
           Fore.GREEN + feed['title'] + Fore.RESET + ' with shortname ' +
           Fore.BLUE + feed['shortname'] + Fore.RESET)
-    if CONFIGURATION["cover_image"]:
+    if "cover_image" in CONFIGURATION and CONFIGURATION["cover_image"]:
         get_cover_image(shortname, d["feed"]["image"]["url"])
 
 
@@ -153,7 +153,7 @@ def update_feed(feed):
             print('new episode.')
     feed = sort_feed(feed)
     overwrite_config(feed)
-    if CONFIGURATION["cover_image"]:
+    if "cover_image" in CONFIGURATION and CONFIGURATION["cover_image"]:
         get_cover_image(feed["shortname"], d["feed"]["image"]["url"])
 
 
