@@ -194,35 +194,54 @@ def rename_episode(folder, published, title, url):
         date_format = CONFIGURATION['date_format']
     else:
         date_format = "%Y-%m-%d"
-    published_date = strftime(date_format, gmtime(published))
-    safe_title = escape_string(title)
-    extenstion = get_extenstion(url)
-    filename = published_date + " - " + safe_title + extenstion
 
-    if not episode_exists(folder, filename):
+    # Use published date and escaped title as filename
+    safe_title = escape_string(title) + get_extenstion(url)
+
+    if date_format:
+        published_date = strftime(date_format, gmtime(published))
+    else:
+        published_date = None
+
+    filename = construct_filename(safe_title, published_date)
+
+    if not file_exists(folder, filename):
         return filename
 
     # If filename exists change title to original filename
     original_title = get_original_filename(url)
-    filename = published_date + " - " + original_title
 
-    if not episode_exists(folder, filename):
+    filname = construct_filename(original_title, published_date)
+
+    if not file_exists(folder, filename):
         return filename
     
-    # If filename exists change date to current and title to episode title
-    current_date = strftime("%Y-%m-%d", gmtime())
-    filename = current_date + " - " + safe_title + extenstion
+    # If filename exists change date to current and title to escaped title
+    if date_format:
+        current_date = strftime(date_format, gmtime())
+    else:
+        current_date = None
+    
+    filname = construct_filename(safe_title, current_date)
 
-    if not episode_exists(folder, filename):
+    if not file_exists(folder, filename):
         return filename
 
     # If filename exists change date to current and title to original filename
-    filename = current_date + " - " + original_title
+    filname = construct_filename(original_title, current_date)
 
-    if not episode_exists(folder, filename):
+    if not file_exists(folder, filename):
         return filename
 
-    return add_epoch(original_title)
+    # If filename exists change date to current epoch and original filename
+    return construct_filename(original_title, gmtime())
+
+
+def construct_filename(title, date=None):
+    if date is None:
+        return title
+    
+    return date + " - " + title
 
 
 def escape_string(title):
@@ -242,11 +261,7 @@ def get_original_filename(url):
     return re.match(pattern, url)
 
 
-def add_epoch(filename):
-    return gmtime() + " - " + filename
-
-
-def episode_exists(shortname, filename):
+def file_exists(shortname, filename):
     base = CONFIGURATION['podcast-directory']
     if os.path.exists(os.path.join(base, shortname, filename)):
         return True
@@ -257,10 +272,10 @@ def episode_exists(shortname, filename):
 def generic_episode_name(folder, url):
     name = get_original_title(url)
 
-    if not episode_exists(folder, name)
+    if not file_exists(folder, name)
         return name
     
-    return add_epoch(name)
+    return construct_filename(name, gmtime())
 
 
 def download_multiple(feed, maxnum):
