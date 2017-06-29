@@ -131,6 +131,8 @@ def import_feed(url, shortname=''):
     print('imported ' +
           Fore.GREEN + feed['title'] + Fore.RESET + ' with shortname ' +
           Fore.BLUE + feed['shortname'] + Fore.RESET)
+    if CONFIGURATION["cover_image"]:
+        get_cover_image(shortname, d["feed"]["image"]["url"])
 
 
 def update_feed(feed):
@@ -151,6 +153,25 @@ def update_feed(feed):
             print('new episode.')
     feed = sort_feed(feed)
     overwrite_config(feed)
+    if CONFIGURATION["cover_image"]:
+        get_cover_image(feed["shortname"], d["feed"]["image"]["url"])
+
+
+def get_cover_image(shortname, url):
+    '''
+    download the cover image of podcast
+    '''
+    # Check if an image name is set in the config file
+    if "cover_image_name" in CONFIGURATION:
+        filename = CONFIGURATION["cover_image_name"]
+    else:
+        filename = "folder"
+
+    filename += get_extenstion(url)
+
+    # Only download if the image doesn't exists in the podcast folder
+    if not file_exists(shortname, filename):
+        download_single(shortname, url, filename)
 
 
 def overwrite_config(feed):
