@@ -296,14 +296,39 @@ def download_multiple(feed, maxnum):
 def download_single(folder, url, filename):
     print(url)
     base = CONFIGURATION['podcast-directory']
+
+    if 'connection_timeout' in CONFIGURATION:
+        connection_timeout = CONFIGURATION['connection_timeout']
+    else:
+        connection_timeout = 10
+    
+    if 'retries' in CONFIGURATION:
+        retries = CONFIGURATION['retries']
+    else:
+        retries = 3
+    
     if filename is None:
         filename = get_original_filename(url)
+    
     print_green("{:s} downloading".format(filename))
-    r = requests.get(url.strip(), stream=True)
-    with open(os.path.join(base, folder, filename), 'wb') as f:
-        for chunk in r.iter_content(chunk_size=1024**2):
-            f.write(chunk)
-    print("done.")    
+
+    for i in range(retries):
+        try:
+            r = requests.get(url.strip(), stream=True, timeout=connection_timeout)
+            with open(os.path.join(base, folder, filename), 'wb') as f:
+                for chunk in r.iter_content(chunk_size=1024**2):
+                    f.write(chunk)
+        except ConnectionError:
+            if i == retries-1:
+                print("Connection failed")
+            continue
+        except Timeout:
+            if i == retries-1:
+                print("Connection to server timed out")
+            continue
+        else:
+            print("done.")
+            break
 
 
 def available_feeds():
