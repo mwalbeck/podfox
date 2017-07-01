@@ -38,7 +38,7 @@ import re
 # how-to-parse-a-rfc-2822-date-time-into-a-python-datetime
 
 from email.utils import parsedate
-from time import time, mktime, gmtime, strftime
+from time import time, mktime, gmtime, strftime, sleep
 
 CONFIGURATION = {}
 
@@ -317,14 +317,43 @@ def download_multiple(feed, maxnum):
 def download_single(folder, url, filename):
     print(url)
     base = CONFIGURATION['podcast-directory']
+
+    if 'connection_timeout' in CONFIGURATION:
+        connection_timeout = CONFIGURATION['connection_timeout']
+    else:
+        connection_timeout = 10
+
+    if 'connection_retries' in CONFIGURATION:
+        connection_retries = CONFIGURATION['connection_retries']
+    else:
+        connection_retries = 3
+
     if filename is None:
         filename = get_original_filename(url)
     print_green("{:s} downloading".format(filename))
-    r = requests.get(url.strip(), stream=True)
-    with open(os.path.join(base, folder, filename), 'wb') as f:
-        for chunk in r.iter_content(chunk_size=1024**2):
-            f.write(chunk)
-    print("done.")
+    for i in range(connection_retries):
+        try:
+            r = requests.get(url.strip(), stream=True, timeout=connection_timeout)
+            with open(os.path.join(base, folder, filename), 'wb') as f:
+                for chunk in r.iter_content(chunk_size=1024**2):
+                    f.write(chunk)
+        except requests.Timeout:
+            if i == connection_retries-1:
+                print("Connection to server timed out")
+            else:
+                print("Connection timed out, retrying...")
+                sleep(1)
+            continue
+        except requests.ConnectionError:
+            if i == connection_retries-1:
+                print("Failed to establish connection with server")
+            else:
+                print("Connection failed, retrying...")
+                sleep(1)
+            continue
+        else:
+            print("done.")
+            break
 
 
 def available_feeds():
