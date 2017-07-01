@@ -39,7 +39,10 @@ import re
 
 from email.utils import parsedate
 from time import time, mktime, gmtime, strftime, sleep
+<<<<<<< cc4abf40a2e4fe00e52aff8d4e1c21d2219455f6
 from tqdm import tqdm
+=======
+>>>>>>> Exception handling for connections error and timeouts
 
 CONFIGURATION = {}
 
@@ -331,11 +334,11 @@ def download_single(folder, url, filename):
     if 'connection_retries' in CONFIGURATION:
         connection_retries = CONFIGURATION['connection_retries']
     else:
-        connection_retries = 9
+        connection_retries = 3
 
     if filename is None:
         filename = get_original_filename(url)
-
+    
     print_green("{:s} downloading".format(filename))
     for i in range(connection_retries):
         try:
