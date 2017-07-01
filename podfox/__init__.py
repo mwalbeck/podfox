@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 """podfox - podcatcher for the terminal
 
 
@@ -28,6 +28,7 @@ import os
 import os.path
 import requests
 import sys
+import re
 
 # RSS datetimes follow RFC 2822, same as email headers.
 # this is the chain of stackoverflow posts that led me to believe this is true.
@@ -37,7 +38,7 @@ import sys
 # how-to-parse-a-rfc-2822-date-time-into-a-python-datetime
 
 from email.utils import parsedate
-from time import mktime
+from time import time, mktime, gmtime, strftime
 
 CONFIGURATION = {}
 
@@ -209,28 +210,121 @@ def episodes_from_feed(d):
     return episodes
 
 
+def rename_episode(folder, published, title, url):
+    if 'date_format' in CONFIGURATION:
+        date_format = CONFIGURATION['date_format']
+    else:
+        date_format = "%Y-%m-%d"
+
+    # Use published date and escaped title as filename
+    safe_title = escape_string(title) + get_extenstion(url)
+
+    if date_format:
+        published_date = strftime(date_format, gmtime(published))
+    else:
+        published_date = None
+
+    filename = construct_filename(safe_title, published_date)
+
+    if not file_exists(folder, filename):
+        return filename
+
+    # If filename exists change title to original filename
+    original_title = get_original_filename(url)
+    filename = construct_filename(original_title, published_date)
+
+    if not file_exists(folder, filename):
+        return filename
+    
+    # If filename exists change date to current and title to escaped title
+    if date_format:
+        current_date = strftime(date_format, gmtime())
+    else:
+        current_date = None
+    
+    filename = construct_filename(safe_title, current_date)
+
+    if not file_exists(folder, filename):
+        return filename
+
+    # If filename exists change date to current and title to original filename
+    filename = construct_filename(original_title, current_date)
+
+    if not file_exists(folder, filename):
+        return filename
+
+    # If filename exists change date to current epoch and original filename
+    return construct_filename(original_title, int(time()))
+
+
+def construct_filename(title, date=None):
+    if date is None:
+        return title
+    
+    return "{} - {}".format(date, title)
+
+
+def escape_string(title):
+    pattern = r'[\|#:%&{}\\/<>*?$!\'"@]'
+    return re.sub(pattern, "_", title)
+
+
+def get_extenstion(url):
+    url = url.split("?")[0]
+    pattern = r'[.][\w]+$'
+    return re.search(pattern, url).group(0)
+
+
+def get_original_filename(url):
+    url = url.split("?")[0]
+    pattern = r'[^\/]+$'
+    return re.search(pattern, url).group(0)
+
+
+def file_exists(shortname, filename):
+    base = CONFIGURATION['podcast-directory']
+    if os.path.exists(os.path.join(base, shortname, filename)):
+        return True
+    
+    return False
+
+
+def generic_episode_name(folder, url):
+    filename = get_original_filename(url)
+
+    if not file_exists(folder, filename):
+        return filename
+    
+    return construct_filename(filename, int(time()))
+
+
 def download_multiple(feed, maxnum):
     for episode in feed['episodes']:
         if maxnum == 0:
             break
         if not episode['downloaded']:
-            download_single(feed['shortname'], episode['url'])
+            if 'rename_episodes' in CONFIGURATION and CONFIGURATION['rename_episodes']:
+                filename = rename_episode(feed['shortname'], episode['published'],
+                                          episode["title"], episode["url"])
+            else:
+                filename = generic_episode_name(feed['shortname'], episode['url'])
+            download_single(feed['shortname'], episode['url'], filename)
             episode['downloaded'] = True
             maxnum -= 1
     overwrite_config(feed)
 
 
-def download_single(folder, url):
+def download_single(folder, url, filename):
     print(url)
     base = CONFIGURATION['podcast-directory']
-    filename = url.split('/')[-1]
-    filename = filename.split('?')[0]
+    if filename is None:
+        filename = get_original_filename(url)
     print_green("{:s} downloading".format(filename))
     r = requests.get(url.strip(), stream=True)
     with open(os.path.join(base, folder, filename), 'wb') as f:
         for chunk in r.iter_content(chunk_size=1024**2):
             f.write(chunk)
-    print("done.")
+    print("done.")    
 
 
 def available_feeds():
@@ -368,3 +462,6 @@ def main():
             exit(0)
     if arguments['rename']:
         rename(arguments['<shortname>'], arguments['<newname>'])
+
+if __name__ == "__main__":
+    main()
