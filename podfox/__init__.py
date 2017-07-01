@@ -48,6 +48,7 @@ mimetypes = [
     'video/mp4'
 ]
 
+
 def print_err(err):
     print(Fore.RED + Style.BRIGHT + err +
           Fore.RESET + Back.RESET + Style.RESET_ALL, file=sys.stderr)
@@ -80,7 +81,7 @@ def import_feed(url, shortname=''):
     '''
     # configuration for this feed, will be written to file.
     feed = {}
-    #get the feed.
+    # get the feed.
     d = feedparser.parse(url)
 
     if shortname:
@@ -91,8 +92,8 @@ def import_feed(url, shortname=''):
             exit(-1)
         else:
             os.makedirs(folder)
-    #if the user did not specify a folder name,
-    #we have to create one from the title
+    # if the user did not specify a folder name,
+    # we have to create one from the title
     if not shortname:
         # the rss advertises a title, lets use that.
         if hasattr(d['feed'], 'title'):
@@ -104,7 +105,7 @@ def import_feed(url, shortname=''):
         # so foldernames will be restricted to lowercase ascii letters,
         # numbers, and dashes:
         title = ''.join(ch for ch in title
-                if ch.isalnum() or ch == ' ')
+                        if ch.isalnum() or ch == ' ')
         shortname = title.replace(' ', '-').lower()
         if not shortname:
             print_err('could not auto-deduce shortname.')
@@ -117,9 +118,8 @@ def import_feed(url, shortname=''):
             exit(-1)
         else:
             os.makedirs(folder)
-    #we have succesfully generated a folder that we can store the files
-    #in
-    #trawl all the entries, and find links to audio files.
+    # we have succesfully generated a folder that we can store the files in
+    # trawl all the entries, and find links to audio files.
     feed['episodes'] = episodes_from_feed(d)
     feed['shortname'] = shortname
     feed['title'] = d['feed']['title']
@@ -142,7 +142,7 @@ def update_feed(feed):
     episodes into our local config.
     '''
     d = feedparser.parse(feed['url'])
-    #only append new episodes!
+    # only append new episodes!
     for episode in episodes_from_feed(d):
         found = False
         for old_episode in feed['episodes']:
@@ -235,13 +235,13 @@ def rename_episode(folder, published, title, url):
 
     if not file_exists(folder, filename):
         return filename
-    
+
     # If filename exists change date to current and title to escaped title
     if date_format:
         current_date = strftime(date_format, gmtime())
     else:
         current_date = None
-    
+
     filename = construct_filename(safe_title, current_date)
 
     if not file_exists(folder, filename):
@@ -260,7 +260,7 @@ def rename_episode(folder, published, title, url):
 def construct_filename(title, date=None):
     if date is None:
         return title
-    
+
     return "{} - {}".format(date, title)
 
 
@@ -285,7 +285,7 @@ def file_exists(shortname, filename):
     base = CONFIGURATION['podcast-directory']
     if os.path.exists(os.path.join(base, shortname, filename)):
         return True
-    
+
     return False
 
 
@@ -294,7 +294,7 @@ def generic_episode_name(folder, url):
 
     if not file_exists(folder, filename):
         return filename
-    
+
     return construct_filename(filename, int(time()))
 
 
@@ -324,7 +324,7 @@ def download_single(folder, url, filename):
     with open(os.path.join(base, folder, filename), 'wb') as f:
         for chunk in r.iter_content(chunk_size=1024**2):
             f.write(chunk)
-    print("done.")    
+    print("done.")
 
 
 def available_feeds():
@@ -335,9 +335,9 @@ def available_feeds():
     '''
     base = CONFIGURATION['podcast-directory']
     paths = [p for p in os.listdir(base)
-             if os.path.isdir(get_folder(p))
-             and os.path.isfile(get_feed_file(p))]
-    #for every folder, check wether a configuration file exists.
+             if os.path.isdir(get_folder(p)) and
+             os.path.isfile(get_feed_file(p))]
+    # for every folder, check wether a configuration file exists.
     results = []
     for shortname in paths:
         with open(get_feed_file(shortname), 'r') as f:
@@ -359,6 +359,7 @@ def find_feed(shortname):
             return feed
     return None
 
+
 def rename(shortname, newname):
     folder = get_folder(shortname)
     new_folder = get_folder(newname)
@@ -369,6 +370,7 @@ def rename(shortname, newname):
     feed = find_feed(shortname)
     feed['shortname'] = newname
     overwrite_config(feed)
+
 
 def pretty_print_feeds(feeds):
     format_str = Fore.GREEN + '{0:45.45} |'
@@ -407,7 +409,7 @@ def main():
         except ValueError:
             print("invalid json in configuration file.")
             exit(-1)
-    #handle the commands
+    # handle the commands
     if arguments['import']:
         if arguments['<shortname>'] is None:
             import_feed(arguments['<feed-url>'])
@@ -446,7 +448,7 @@ def main():
             maxnum = int(arguments['--how-many'])
         else:
             maxnum = CONFIGURATION['maxnum']
-        #download episodes for a specific feed
+        # download episodes for a specific feed
         if arguments['<shortname>']:
             feed = find_feed(arguments['<shortname>'])
             if feed:
@@ -455,7 +457,7 @@ def main():
             else:
                 print_err("feed {} not found".format(arguments['<shortname>']))
                 exit(-1)
-        #download episodes for all feeds.
+        # download episodes for all feeds.
         else:
             for feed in available_feeds():
                 download_multiple(feed,  maxnum)
