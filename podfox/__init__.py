@@ -39,6 +39,7 @@ import re
 
 from email.utils import parsedate
 from time import time, mktime, gmtime, strftime, sleep
+from tqdm import tqdm
 
 CONFIGURATION = {}
 
@@ -330,7 +331,7 @@ def download_single(folder, url, filename):
     if 'connection_retries' in CONFIGURATION:
         connection_retries = CONFIGURATION['connection_retries']
     else:
-        connection_retries = 3
+        connection_retries = 9
 
     if filename is None:
         filename = get_original_filename(url)
@@ -339,21 +340,24 @@ def download_single(folder, url, filename):
     for i in range(connection_retries):
         try:
             r = requests.get(url.strip(), stream=True, timeout=connection_timeout)
+            size = int(r.headers.get('content-length'))
+            progress = tqdm(total=size, unit="B", unit_scale=True)
             with open(os.path.join(base, folder, filename), 'wb') as f:
-                for chunk in r.iter_content(chunk_size=1024**2):
+                for chunk in r.iter_content(1024):
                     f.write(chunk)
+                    progress.update(len(chunk))
         except requests.Timeout:
             if i == connection_retries-1:
-                print("Connection to server timed out")
+                tqdm.write("Connection to server timed out")
             else:
-                print("Connection timed out, retrying...")
+                tqdm.write("Connection timed out, retrying...")
                 sleep(1)
             continue
         except requests.ConnectionError:
             if i == connection_retries-1:
-                print("Failed to establish connection with server")
+                tqdm.write("Failed to establish connection with server")
             else:
-                print("Connection failed, retrying...")
+                tqdm.write("Connection failed, retrying...")
                 sleep(1)
             continue
         else:
