@@ -308,8 +308,8 @@ def download_multiple(feed, maxnum):
                                           episode["title"], episode["url"])
             else:
                 filename = generic_episode_name(feed['shortname'], episode['url'])
-            download_single(feed['shortname'], episode['url'], filename)
-            episode['downloaded'] = True
+            if download_single(feed['shortname'], episode['url'], filename) is True:
+                episode['downloaded'] = True
             maxnum -= 1
     overwrite_config(feed)
 
@@ -330,7 +330,7 @@ def download_single(folder, url, filename):
 
     if filename is None:
         filename = get_original_filename(url)
-    
+
     print_green("{:s} downloading".format(filename))
     for i in range(connection_retries):
         try:
@@ -355,6 +355,10 @@ def download_single(folder, url, filename):
         else:
             print("done.")
             break
+    else:
+        return False
+
+    return True
 
 
 def available_feeds():
