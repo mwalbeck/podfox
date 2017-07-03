@@ -289,6 +289,10 @@ def file_exists(shortname, filename):
     return False
 
 
+def remove_file(path):
+    os.remove(path)
+
+
 def generic_episode_name(folder, url):
     filename = get_original_filename(url)
 
@@ -356,6 +360,8 @@ def download_single(folder, url, filename):
             print("done.")
             break
     else:
+        if file_exists(folder, filename):
+            remove_file(os.path.join(base, folder, filename))
         return False
 
     return True
