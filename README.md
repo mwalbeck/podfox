@@ -5,12 +5,15 @@
 A program for managing & catching podcasts from the terminal. 
 
 Work in Progress and unfinished. Use at your own risk.
+
 ## Requirements
-requires feedparser, requests and colorama
+requires feedparser, requests, colorama and tqdm
 
-install automatically via pip:
-
-```pip install podfox```
+```
+git clone https://github.com/mwalbeck/podfox.git
+cd podfox
+python3 setup.py install
+```
 
 ## Configuration
 
@@ -18,13 +21,25 @@ podfox main configuration file is called `.podfox.json` and should be located in
 Here is mine: 
 ```
 {
-    "podcast-directory" : "/home/basti/podcasts",
-    "maxnum"            : 5
+    "podcast-directory"     : "/home/<USER>/podcasts",
+    "maxnum"                : 5,
+    "cover-image"           : true,
+    "cover-image-name"      : "folder",
+    "rename-episodes"       : true,
+    "date-format"           : "%Y-%m-%d",
+    "connection-timeout"    : 10,
+    "conncetion-retries"    : 3
 }
 ```
-`podcast-directory` is your main directory to store podcast data. This directory should be empty before you
-begin adding feeds.
-`maxnum` describes the maximum number of episodes you want to download with a single `download`-command.
+* `podcast-directory` is your main directory to store podcast data. This directory should be empty before you begin adding feeds.
+* `maxnum` describes the maximum number of episodes you want to download with a single `download`-command. -1 for no limit.
+* `cover-image` *(optional)* boolean value to enable downloading of podcast image (default is `false`)
+* `cover-image-name` *(optional)* custom name for the image (default is `folder`)
+* `rename-episodes` *(optional)* boolean value to enable renaming of podcast episodes (default is `false`)
+* `date-format` *(optional)* formatting for the date when renaming episodes (default is `%Y-%m-%d`)
+* `connection-timeout` *(optional)* int in seconds for how long to wait before timeout (default is `10`)
+* `connection-retries` *(optional)* int for how many retries per podcast episode before moving on to next episode if there is connection problems (default is `3`)
+
 
 ## Directory Structure
 
