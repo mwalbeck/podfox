@@ -125,6 +125,7 @@ def import_feed(url, shortname=''):
     feed['shortname'] = shortname
     feed['title'] = d['feed']['title']
     feed['url'] = url
+    feed['description'] = d['feed']['description']
     # write the configuration to a feed.json within the folder
     feed_file = get_feed_file(shortname)
     feed = sort_feed(feed)
@@ -201,12 +202,19 @@ def episodes_from_feed(d):
                         episode_title = entry.title
                     else:
                         episode_title = link.href
+
+                    if hasattr(entry, 'description'):
+                        episode_description = entry.description
+                    else:
+                        episode_description = ""
+
                     episodes.append({
                         'title':      episode_title,
                         'url':        link.href,
                         'downloaded': False,
                         'listened':   False,
-                        'published':  date
+                        'published':  date,
+                        'description': episode_description
                         })
     return episodes
 
