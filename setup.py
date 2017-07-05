@@ -18,10 +18,10 @@ setup(name='podfox',
         ]
     },
     install_requires=[
-        'colorama==0.3.7',
+        'colorama>=0.3.7,<=0.3.9',
         'docopt==0.6.2',
         'feedparser==5.2.1',
-        'requests==2.11.1',
+        'requests>=2.11.1,<=2.18.1',
         'tqdm==4.14.0',
         ],
     )
