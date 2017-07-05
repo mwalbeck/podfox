@@ -3,18 +3,10 @@ from setuptools import setup
 with open('requirements.txt') as f:
     required = f.read().splitlines()
 
-setup(name='podfox',
-    version='0.1.3',
-    description='Podcatcher for the terminal',
-    url='http://github.com/mwalbeck/podfox',
-    author='Magnus Walbeck',
-    author_email='mw@mwalbeck.org',
-    license='GPLv3',
-    packages=['podfox'],
-    zip_safe=False,
+setup(name='podfox', zip_safe=False,
     entry_points={
-        'console_scripts' : [
-            'podfox = podfox.__init__:main'    
+        'console_scripts': [
+            'podfox = podfox.__init__:main'
         ]
     },
     install_requires=[

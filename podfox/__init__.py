@@ -316,6 +316,8 @@ def download_multiple(feed, maxnum):
     for episode in feed['episodes']:
         if maxnum == 0:
             break
+        if episode['downloaded']:
+            maxnum -= 1
         if not episode['downloaded']:
             if 'rename_episodes' in CONFIGURATION and CONFIGURATION['rename_episodes']:
                 filename = rename_episode(feed['shortname'], episode['published'],
@@ -499,8 +501,10 @@ def main():
     if arguments['download']:
         if arguments['--how-many']:
             maxnum = int(arguments['--how-many'])
-        else:
+        else if 'maxnum' in CONFIGURATION:
             maxnum = CONFIGURATION['maxnum']
+        else:
+            maxnum = -1
         # download episodes for a specific feed
         if arguments['<shortname>']:
             feed = find_feed(arguments['<shortname>'])

@@ -32,7 +32,7 @@ Here is mine:
 }
 ```
 * `podcast-directory` is your main directory to store podcast data. This directory should be empty before you begin adding feeds.
-* `maxnum` describes the maximum number of episodes you want to download with a single `download`-command. -1 for no limit.
+* `maxnum` *(optional)* download the newest of noted amount of episodes from podcast. When a new episodes comes out the oldest will be ignore if deleted (default is no limit)
 * `cover-image` *(optional)* boolean value to enable downloading of podcast image (default is `false`)
 * `cover-image-name` *(optional)* custom name for the image (default is `folder`)
 * `rename-episodes` *(optional)* boolean value to enable renaming of podcast episodes (default is `false`)
