@@ -17,18 +17,22 @@ Options:
 # (C) 2015 Bastian Reitemeier
 # mail(at)brtmr.de
 
-from colorama import Fore, Back, Style
-from docopt import docopt
-from os.path import expanduser
+import sys
 from sys import exit
-import colorama
-import feedparser
-import json
 import os
 import os.path
-import requests
-import sys
+from os.path import expanduser
 import re
+import json
+from time import time, mktime, gmtime, strftime, sleep
+from email.utils import parsedate
+
+import colorama
+from colorama import Fore, Back, Style
+import feedparser
+import requests
+from tqdm import tqdm
+from docopt import docopt
 
 # RSS datetimes follow RFC 2822, same as email headers.
 # this is the chain of stackoverflow posts that led me to believe this is true.
@@ -37,13 +41,10 @@ import re
 # http://stackoverflow.com/questions/885015/
 # how-to-parse-a-rfc-2822-date-time-into-a-python-datetime
 
-from email.utils import parsedate
-from time import time, mktime, gmtime, strftime, sleep
-from tqdm import tqdm
 
 CONFIGURATION = {}
 
-mimetypes = [
+MIMETYPES = [
     'audio/ogg',
     'audio/mpeg',
     'video/mp4'
@@ -197,7 +198,7 @@ def episodes_from_feed(d):
             for link in entry.links:
                 if not hasattr(link, 'type'):
                     continue
-                if hasattr(link, 'type') and (link.type in mimetypes):
+                if hasattr(link, 'type') and (link.type in MIMETYPES):
                     if hasattr(entry, 'title'):
                         episode_title = entry.title
                     else:
@@ -512,7 +513,7 @@ def main():
         # download episodes for all feeds.
         else:
             for feed in available_feeds():
-                download_multiple(feed,  maxnum)
+                download_multiple(feed, maxnum)
             exit(0)
     if arguments['rename']:
         rename(arguments['<shortname>'], arguments['<newname>'])
