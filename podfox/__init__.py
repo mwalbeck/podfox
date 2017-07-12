@@ -357,19 +357,28 @@ def download_single(folder, url, filename):
                 for chunk in r.iter_content(1024):
                     f.write(chunk)
                     progress.update(len(chunk))
+                progress.close()
         except requests.Timeout:
+            if progress:
+                progress.close()
+
             if i == connection_retries-1:
-                tqdm.write("Connection to server timed out")
+                print("Connection to server timed out")
             else:
-                tqdm.write("Connection timed out, retrying...")
+                print("Connection timed out, retrying...")
                 sleep(1)
+
             continue
         except requests.ConnectionError:
+            if progress:
+                progress.close()
+
             if i == connection_retries-1:
-                tqdm.write("Failed to establish connection with server")
+                print("Failed to establish connection with server")
             else:
-                tqdm.write("Connection failed, retrying...")
+                print("Connection failed, retrying...")
                 sleep(1)
+
             continue
         else:
             print("done.")
