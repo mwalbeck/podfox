@@ -501,7 +501,7 @@ def main():
     if arguments['download']:
         if arguments['--how-many']:
             maxnum = int(arguments['--how-many'])
-        else if 'maxnum' in CONFIGURATION:
+        elif 'maxnum' in CONFIGURATION:
             maxnum = CONFIGURATION['maxnum']
         else:
             maxnum = -1
